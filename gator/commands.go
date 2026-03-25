@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/fds66/gator/internal/config"
+	"github.com/fds66/gator/internal/database"
 )
 
 type State struct {
+	db            *database.Queries
 	Configuration *config.Config
 }
 
@@ -50,12 +57,47 @@ func handlerLogin(s *State, cmd Command) error {
 	if len(cmd.Arguments) == 0 {
 		return fmt.Errorf("no username provided")
 	}
+	_, err := s.db.GetUser(context.Background(), cmd.Arguments[0])
+	if err != nil {
+		fmt.Printf("username %s does not exist in the database\n", cmd.Arguments[0])
+		os.Exit(1)
+	}
 	cfg := s.Configuration
-	err := cfg.SetUser(cmd.Arguments[0])
+	err = cfg.SetUser(cmd.Arguments[0])
 	if err != nil {
 		return err
 	}
 	fmt.Printf("User name has been set to %s\n", cmd.Arguments[0])
+	return nil
+}
+
+// this is the Register create user function
+func handlerRegister(s *State, cmd Command) error {
+	if len(cmd.Arguments) == 0 {
+		return fmt.Errorf("no name provided")
+	}
+	// create a new user in the database
+	username := cmd.Arguments[0]
+	//Check if the username already exists
+	_, err := s.db.GetUser(context.Background(), username)
+	if err == nil {
+		fmt.Printf("username %s already exists", username)
+		os.Exit(1)
+	}
+	userId := uuid.New()
+	time := time.Now()
+	createParams := database.CreateUserParams{
+		ID:        userId,
+		CreatedAt: time,
+		UpdatedAt: time,
+		Name:      username}
+	user := database.User{}
+	user, err = s.db.CreateUser(context.Background(), createParams)
+	s.Configuration.SetUser(username)
+	fmt.Printf("User %s has been created\n", username)
+	fmt.Printf("User struct :\n")
+	fmt.Printf("id: %v\ncreated_at: %v\nupdated_at: %v\nname: %s\n", user.ID, user.CreatedAt, user.UpdatedAt, user.Name)
+
 	return nil
 }
 
@@ -65,6 +107,7 @@ func initCommands() (Commands, error) {
 	newMap := make(map[string]func(*State, Command) error)
 	commands := Commands{CommandList: newMap}
 	commands.register("login", handlerLogin)
+	commands.register("register", handlerRegister)
 
 	return commands, nil
 }

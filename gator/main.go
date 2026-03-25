@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/fds66/gator/internal/config"
+	"github.com/fds66/gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -15,7 +18,12 @@ func main() {
 		log.Fatalf("error reading config from json file, %v", err)
 	}
 	fmt.Printf("read config, %+v\n", *configStruct)
+
+	//connection to database set up and store in state
 	s := State{Configuration: configStruct}
+	db, err := sql.Open("postgres", s.Configuration.DbURL)
+	dbQueries := database.New(db)
+	s.db = dbQueries
 
 	// Create commands and load up
 	var commands Commands
@@ -46,7 +54,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("error reading data from json file, %v", err)
 	}
-	fmt.Printf("Read config file again: %+v\n", *configStruct)
+	fmt.Println("Read config file again: ")
 	fmt.Printf("DbURL: '%s'\n", configStruct.DbURL)
 	fmt.Printf("CurrentUserName: '%s'\n", configStruct.CurrentUserName)
 
