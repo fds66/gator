@@ -81,7 +81,7 @@ func handlerRegister(s *State, cmd Command) error {
 	//Check if the username already exists
 	_, err := s.db.GetUser(context.Background(), username)
 	if err == nil {
-		fmt.Printf("username %s already exists", username)
+		fmt.Printf("username %s already exists\n", username)
 		os.Exit(1)
 	}
 	userId := uuid.New()
@@ -101,6 +101,19 @@ func handlerRegister(s *State, cmd Command) error {
 	return nil
 }
 
+// This is the reset command to remove all users from the database, useful for testing purposes
+func handlerReset(s *State, cmd Command) error {
+
+	err := s.db.ResetUsers(context.Background())
+	if err != nil {
+		fmt.Printf("Problem resetting the users database %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Database users reset")
+	return nil
+
+}
+
 // this initiates the commands struct and registers the command names and functions
 func initCommands() (Commands, error) {
 
@@ -108,6 +121,7 @@ func initCommands() (Commands, error) {
 	commands := Commands{CommandList: newMap}
 	commands.register("login", handlerLogin)
 	commands.register("register", handlerRegister)
+	commands.register("reset", handlerReset)
 
 	return commands, nil
 }
