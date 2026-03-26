@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config from json file, %v", err)
 	}
-	fmt.Printf("read config, %+v\n", *configStruct)
+	//fmt.Printf("read config, %+v\n", *configStruct)
 
 	//connection to database set up and store in state
 	s := State{Configuration: configStruct}
@@ -28,7 +28,7 @@ func main() {
 	// Create commands and load up
 	var commands Commands
 	commands, err = initCommands()
-	fmt.Printf("This is the newly created commands struct with login registered %v\n", commands)
+	//fmt.Printf("This is the newly created commands struct with login registered %v\n", commands)
 
 	// get the command line arguments args[0] is the automatically the program name, args[1] is the command name, args[2 onwards] are the arguments used in the command
 	args := os.Args
@@ -48,14 +48,14 @@ func main() {
 		fmt.Println("Command returned an error")
 		log.Fatalf("error executing %s, %v", cmd.Name, err)
 	}
-
-	// Read config again to check it worked
-	configStruct, err = config.Read()
-	if err != nil {
-		fmt.Printf("error reading data from json file, %v", err)
-	}
-	fmt.Println("Read config file again: ")
-	fmt.Printf("DbURL: '%s'\n", configStruct.DbURL)
-	fmt.Printf("CurrentUserName: '%s'\n", configStruct.CurrentUserName)
-
+	/*
+		// Read config again to check it worked
+		configStruct, err = config.Read()
+		if err != nil {
+			fmt.Printf("error reading data from json file, %v", err)
+		}
+		fmt.Println("Read config file again: ")
+		fmt.Printf("DbURL: '%s'\n", configStruct.DbURL)
+		fmt.Printf("CurrentUserName: '%s'\n", configStruct.CurrentUserName)
+	*/
 }

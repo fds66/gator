@@ -122,6 +122,7 @@ func initCommands() (Commands, error) {
 	commands.register("login", handlerLogin)
 	commands.register("register", handlerRegister)
 	commands.register("reset", handlerReset)
+	commands.register("agg", handlerAgg)
 
 	return commands, nil
 }
