@@ -114,6 +114,26 @@ func handlerReset(s *State, cmd Command) error {
 
 }
 
+// this command lists all the users in the database and indicates which is the current user
+func handlerUsers(s *State, cmd Command) error {
+
+	users_list, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		fmt.Printf("Problem getting a list of users from the users database %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Users:")
+	for _, name := range users_list {
+		if name == s.Configuration.CurrentUserName {
+			fmt.Printf("* %s (current)\n", name)
+		} else {
+			fmt.Printf("* %s\n", name)
+		}
+	}
+	return nil
+
+}
+
 // this initiates the commands struct and registers the command names and functions
 func initCommands() (Commands, error) {
 
@@ -122,6 +142,7 @@ func initCommands() (Commands, error) {
 	commands.register("login", handlerLogin)
 	commands.register("register", handlerRegister)
 	commands.register("reset", handlerReset)
+	commands.register("users", handlerUsers)
 	commands.register("agg", handlerAgg)
 
 	return commands, nil
