@@ -101,3 +101,16 @@ func (q *Queries) ResetUsers(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, resetUsers)
 	return err
 }
+
+const userNameFromID = `-- name: UserNameFromID :one
+SELECT name
+FROM users
+WHERE id = $1
+`
+
+func (q *Queries) UserNameFromID(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, userNameFromID, id)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}

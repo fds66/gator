@@ -179,6 +179,30 @@ func printFeed(feed database.Feed) {
 	fmt.Printf("* UserID:        %s\n", feed.UserID)
 }
 
+// this command lists all the feeds in the database
+func handlerFeeds(s *State, cmd Command) error {
+
+	feedsList, err := s.db.ListFeeds(context.Background())
+	if err != nil {
+		fmt.Printf("Problem getting a list of feeds from the feeds database %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Feeds:")
+
+	for i, _ := range feedsList {
+		fmt.Printf("Feed %d\n", i)
+		fmt.Printf("* Name:         %s\n", feedsList[i].Name)
+		fmt.Printf("* URL:          %s\n", feedsList[i].Url)
+		userName, err2 := s.db.UserNameFromID(context.Background(), feedsList[i].UserID)
+		if err2 != nil {
+			fmt.Printf("Problem retrieving username from userid for %s feed \n", feedsList[i].Name)
+		}
+		fmt.Printf("* created by:   %s\n", userName)
+	}
+	return nil
+
+}
+
 // this initiates the commands struct and registers the command names and functions
 func initCommands() (Commands, error) {
 
@@ -190,6 +214,7 @@ func initCommands() (Commands, error) {
 	commands.register("users", handlerUsers)
 	commands.register("agg", handlerAgg)
 	commands.register("addfeed", handlerAddfeed)
+	commands.register("feeds", handlerFeeds)
 
 	return commands, nil
 }
