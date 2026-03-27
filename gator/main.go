@@ -58,4 +58,26 @@ func main() {
 		fmt.Printf("DbURL: '%s'\n", configStruct.DbURL)
 		fmt.Printf("CurrentUserName: '%s'\n", configStruct.CurrentUserName)
 	*/
+	/*
+		Database schema
+
+		CREATE TABLE users (
+			id UUID PRIMARY KEY,
+			created_at TIMESTAMP NOT NULL,
+			updated_at TIMESTAMP NOT NULL,
+			name TEXT NOT NULL
+			);
+		CREATE TABLE feeds (
+			id UUID PRIMARY KEY,
+			created_at TIMESTAMP NOT NULL,
+			updated_at TIMESTAMP NOT NULL,
+			name TEXT NOT NULL,
+			url TEXT NOT NULL UNIQUE,
+			user_id UUID NOT NULL REFERENCES users
+			ON DELETE CASCADE,
+			CONSTRAINT fk_users
+			FOREIGN KEY (user_id)
+			REFERENCES users(id)
+		);
+	*/
 }

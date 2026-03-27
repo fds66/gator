@@ -134,6 +134,42 @@ func handlerUsers(s *State, cmd Command) error {
 
 }
 
+func handlerAddfeed(s *State, cmd Command) error {
+	if len(cmd.Arguments) < 2 {
+		return fmt.Errorf("not enough arguments provided Syntax 'addfeed name url'\n")
+	}
+
+	// create a new user in the database
+	feedName := cmd.Arguments[0]
+	feedURL := cmd.Arguments[1]
+	//Get the current user
+	currentUser := s.Configuration.CurrentUserName
+	User, err := s.db.GetUser(context.Background(), currentUser)
+	currentUserID := User.ID
+	if err != nil {
+		fmt.Printf("Cannot retrieve ID of current user %s", currentUser)
+		os.Exit(1)
+	}
+	feedId := uuid.New()
+	time := time.Now()
+	createParams := database.CreateFeedParams{
+		ID:        feedId,
+		CreatedAt: time,
+		UpdatedAt: time,
+		Name:      feedName,
+		Url:       feedURL,
+		UserID:    currentUserID,
+	}
+
+	feed, err := s.db.CreateFeed(context.Background(), createParams)
+	fmt.Printf("Feed %s at %s has been created\n", feedName, feedURL)
+	fmt.Printf("Feed struct :\n")
+	fmt.Printf("%+v", feed)
+
+	return nil
+
+}
+
 // this initiates the commands struct and registers the command names and functions
 func initCommands() (Commands, error) {
 
@@ -144,6 +180,7 @@ func initCommands() (Commands, error) {
 	commands.register("reset", handlerReset)
 	commands.register("users", handlerUsers)
 	commands.register("agg", handlerAgg)
+	commands.register("addfeed", handlerAddfeed)
 
 	return commands, nil
 }
