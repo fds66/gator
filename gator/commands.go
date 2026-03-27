@@ -165,7 +165,16 @@ func handlerAddfeed(s *State, cmd Command) error {
 	fmt.Printf("Feed %s at %s has been created\n", feedName, feedURL)
 	fmt.Printf("Feed struct :\n")
 	printFeed(feed)
-
+	// add the feed to the current users feed follow list
+	var passArgument []string
+	passArgument = append(passArgument, feedURL)
+	command := Command{
+		Name:      "follow",
+		Arguments: passArgument}
+	err = handlerFollow(s, command)
+	if err != nil {
+		fmt.Println("Error adding this feed to the current users follow list")
+	}
 	return nil
 
 }
@@ -205,6 +214,104 @@ func handlerFeeds(s *State, cmd Command) error {
 	return nil
 
 }
+func handlerFollow(s *State, cmd Command) error {
+	if len(cmd.Arguments) < 1 {
+		return fmt.Errorf("not enough arguments provided Syntax 'follow url'\n")
+	}
+
+	// create a new follow
+	// Find feed id
+	feedURL := cmd.Arguments[0]
+	feed, err := s.db.FeedFromURL(context.Background(), feedURL)
+	if err != nil {
+		fmt.Printf("Cannot retrieve ID of feed %s", feedURL)
+		os.Exit(1)
+	}
+	feedID := feed.ID
+	//fmt.Printf("feed ID %v, feedURL %v\n", feedID, feedURL)
+	//Get the current user and id
+	currentUser := s.Configuration.CurrentUserName
+	User, err := s.db.GetUser(context.Background(), currentUser)
+	currentUserID := User.ID
+	if err != nil {
+		fmt.Printf("Cannot retrieve ID of current user %s", currentUser)
+		os.Exit(1)
+	}
+	//fmt.Printf("User ID %v, username %v\n", currentUserID, s.Configuration.CurrentUserName)
+	feedFollowId := uuid.New()
+	time := time.Now()
+	createParams := database.CreateFeedFollowParams{
+		ID:        feedFollowId,
+		CreatedAt: time,
+		UpdatedAt: time,
+		UserID:    currentUserID,
+		FeedID:    feedID,
+	}
+	//fmt.Printf("Create struct :\n")
+	//fmt.Printf("%+v\n", createParams)
+	feed_follow, err := s.db.CreateFeedFollow(context.Background(), createParams)
+	fmt.Printf("Feed %s at %s has been created\n", feed.Name, feedURL)
+	fmt.Printf("Feed struct :\n")
+	fmt.Printf("%+v\n", feed_follow)
+	printFeedFollow(feed_follow)
+
+	return nil
+
+}
+func printFeedFollow(feed database.CreateFeedFollowRow) {
+	fmt.Printf("* ID:            %v\n", feed.ID)
+	fmt.Printf("* Created:       %v\n", feed.CreatedAt)
+	fmt.Printf("* Updated:       %v\n", feed.UpdatedAt)
+	fmt.Printf("* UserID:        %v\n", feed.UserID)
+	fmt.Printf("* User Name:     %v\n", feed.UserName)
+	fmt.Printf("* FeedID:        %v\n", feed.FeedID)
+	fmt.Printf("* Feed Name:     %v\n", feed.FeedName)
+}
+
+// gets the feeds the current user is following
+func handlerFollowing(s *State, cmd Command) error {
+
+	currentUser := s.Configuration.CurrentUserName
+	User, err := s.db.GetUser(context.Background(), currentUser)
+	currentUserID := User.ID
+	feedsList, err := s.db.GetFeedFollowsForUserID(context.Background(), currentUserID)
+	if err != nil {
+		fmt.Printf("Problem getting a list of feeds followed by current user %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Feeds for %s:\n", s.Configuration.CurrentUserName)
+	for i := range feedsList {
+		fmt.Printf("* Feed Name    %v\n", feedsList[i].FeedName)
+	}
+	return nil
+
+}
+
+// This is the reset command to remove all feedfollows from the database, useful for testing purposes
+func handlerResetFeedFollow(s *State, cmd Command) error {
+
+	err := s.db.ResetFeedFollow(context.Background())
+	if err != nil {
+		fmt.Printf("Problem resetting the feedfollow database %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Database feedfollow reset")
+	return nil
+
+}
+
+// This is the reset command to remove all feeds from the database, useful for testing purposes
+func handlerResetFeeds(s *State, cmd Command) error {
+
+	err := s.db.ResetFeeds(context.Background())
+	if err != nil {
+		fmt.Printf("Problem resetting the feeds database %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Database feeds reset")
+	return nil
+
+}
 
 // this initiates the commands struct and registers the command names and functions
 func initCommands() (Commands, error) {
@@ -218,6 +325,10 @@ func initCommands() (Commands, error) {
 	commands.register("agg", handlerAgg)
 	commands.register("addfeed", handlerAddfeed)
 	commands.register("feeds", handlerFeeds)
+	commands.register("reset_feeds", handlerResetFeeds)
+	commands.register("follow", handlerFollow)
+	commands.register("following", handlerFollowing)
+	commands.register("reset_feed_follow", handlerResetFeedFollow)
 
 	return commands, nil
 }

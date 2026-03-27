@@ -1,0 +1,37 @@
+-- name: CreateFeedFollow :one
+WITH insert_feed_follow AS (INSERT INTO feed_follows (id, created_at, updated_at, user_id, feed_id)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5
+)
+RETURNING *)
+SELECT insert_feed_follow.*, users.name AS user_name, feeds.name AS feed_name
+FROM insert_feed_follow
+LEFT JOIN users
+ON users.id = insert_feed_follow.user_id
+LEFT JOIN feeds
+ON feeds.id = insert_feed_follow.feed_id
+;
+-- name: ListFeedFollows :many
+SELECT feed_follows.*, users.name AS user_name, feeds.name AS feed_name
+FROM feed_follows
+LEFT JOIN users
+ON users.id = feed_follows.user_id
+LEFT JOIN feeds
+ON feeds.id = feed_follows.feed_id
+;
+-- name: GetFeedFollowsForUserID :many
+SELECT feed_follows.*, users.name AS user_name, feeds.name AS feed_name
+FROM feed_follows
+LEFT JOIN users
+ON users.id = feed_follows.user_id
+LEFT JOIN feeds
+ON feeds.id = feed_follows.feed_id
+WHERE feed_follows.user_id = $1;
+
+
+-- name: ResetFeedFollow :exec
+DELETE FROM feed_follows;

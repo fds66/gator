@@ -55,27 +55,68 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 	return i, err
 }
 
+const feedFromID = `-- name: FeedFromID :one
+SELECT id, created_at, updated_at, name, url, user_id
+FROM feeds
+WHERE id = $1
+`
+
+func (q *Queries) FeedFromID(ctx context.Context, id uuid.UUID) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, feedFromID, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const feedFromURL = `-- name: FeedFromURL :one
+SELECT id, created_at, updated_at, name, url, user_id
+FROM feeds
+WHERE url = $1
+`
+
+func (q *Queries) FeedFromURL(ctx context.Context, url string) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, feedFromURL, url)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const listFeeds = `-- name: ListFeeds :many
-SELECT name, url, user_id
+SELECT id, created_at, updated_at, name, url, user_id
 FROM feeds
 `
 
-type ListFeedsRow struct {
-	Name   string
-	Url    string
-	UserID uuid.UUID
-}
-
-func (q *Queries) ListFeeds(ctx context.Context) ([]ListFeedsRow, error) {
+func (q *Queries) ListFeeds(ctx context.Context) ([]Feed, error) {
 	rows, err := q.db.QueryContext(ctx, listFeeds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListFeedsRow
+	var items []Feed
 	for rows.Next() {
-		var i ListFeedsRow
-		if err := rows.Scan(&i.Name, &i.Url, &i.UserID); err != nil {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.Url,
+			&i.UserID,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -87,4 +128,13 @@ func (q *Queries) ListFeeds(ctx context.Context) ([]ListFeedsRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const resetFeeds = `-- name: ResetFeeds :exec
+DELETE FROM feeds
+`
+
+func (q *Queries) ResetFeeds(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetFeeds)
+	return err
 }

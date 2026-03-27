@@ -10,5 +10,15 @@ VALUES (
 )
 RETURNING *;
 -- name: ListFeeds :many
-SELECT name, url, user_id
+SELECT *
 FROM feeds;
+-- name: FeedFromID :one
+SELECT *
+FROM feeds
+WHERE id = $1;
+-- name: FeedFromURL :one
+SELECT *
+FROM feeds
+WHERE url = $1;
+-- name: ResetFeeds :exec
+DELETE FROM feeds;
