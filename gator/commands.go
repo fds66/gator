@@ -164,10 +164,19 @@ func handlerAddfeed(s *State, cmd Command) error {
 	feed, err := s.db.CreateFeed(context.Background(), createParams)
 	fmt.Printf("Feed %s at %s has been created\n", feedName, feedURL)
 	fmt.Printf("Feed struct :\n")
-	fmt.Printf("%+v", feed)
+	printFeed(feed)
 
 	return nil
 
+}
+
+func printFeed(feed database.Feed) {
+	fmt.Printf("* ID:            %s\n", feed.ID)
+	fmt.Printf("* Created:       %v\n", feed.CreatedAt)
+	fmt.Printf("* Updated:       %v\n", feed.UpdatedAt)
+	fmt.Printf("* Name:          %s\n", feed.Name)
+	fmt.Printf("* URL:           %s\n", feed.Url)
+	fmt.Printf("* UserID:        %s\n", feed.UserID)
 }
 
 // this initiates the commands struct and registers the command names and functions
