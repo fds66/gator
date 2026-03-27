@@ -187,9 +187,12 @@ func handlerFeeds(s *State, cmd Command) error {
 		fmt.Printf("Problem getting a list of feeds from the feeds database %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Println("Feeds:")
-
-	for i, _ := range feedsList {
+	if len(feedsList) == 0 {
+		fmt.Println("No feeds found")
+		return nil
+	}
+	fmt.Printf("%d feeds found:\n", len(feedsList))
+	for i := range feedsList {
 		fmt.Printf("Feed %d\n", i)
 		fmt.Printf("* Name:         %s\n", feedsList[i].Name)
 		fmt.Printf("* URL:          %s\n", feedsList[i].Url)
