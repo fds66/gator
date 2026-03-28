@@ -205,7 +205,7 @@ func handlerFeeds(s *State, cmd Command) error {
 		return nil
 	}
 	fmt.Printf("%d feeds found:\n", len(feedsList))
-	fmt.Printf("Feeds Followed :\n")
+	fmt.Printf("Feeds  :\n")
 	for i := range feedsList {
 		fmt.Printf("Feed %d\n", i)
 		printFeedShort(feedsList[i])
