@@ -41,43 +41,12 @@ func main() {
 		Name:      args[1],
 		Arguments: args[2:],
 	}
-	fmt.Printf("command %+v\n", cmd)
+	//fmt.Printf("command %+v\n", cmd)
 	// run the command
 	err = commands.run(&s, cmd)
 	if err != nil {
 		fmt.Println("Command returned an error")
 		log.Fatalf("error executing %s, %v", cmd.Name, err)
 	}
-	/*
-		// Read config again to check it worked
-		configStruct, err = config.Read()
-		if err != nil {
-			fmt.Printf("error reading data from json file, %v", err)
-		}
-		fmt.Println("Read config file again: ")
-		fmt.Printf("DbURL: '%s'\n", configStruct.DbURL)
-		fmt.Printf("CurrentUserName: '%s'\n", configStruct.CurrentUserName)
-	*/
-	/*
-		Database schema
 
-		CREATE TABLE users (
-			id UUID PRIMARY KEY,
-			created_at TIMESTAMP NOT NULL,
-			updated_at TIMESTAMP NOT NULL,
-			name TEXT NOT NULL
-			);
-		CREATE TABLE feeds (
-			id UUID PRIMARY KEY,
-			created_at TIMESTAMP NOT NULL,
-			updated_at TIMESTAMP NOT NULL,
-			name TEXT NOT NULL,
-			url TEXT NOT NULL UNIQUE,
-			user_id UUID NOT NULL REFERENCES users
-			ON DELETE CASCADE,
-			CONSTRAINT fk_users
-			FOREIGN KEY (user_id)
-			REFERENCES users(id)
-		);
-	*/
 }
