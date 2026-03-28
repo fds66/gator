@@ -282,6 +282,43 @@ func printFeedFollow(feed database.CreateFeedFollowRow) {
 	fmt.Printf("* Feed Name:     %s\n", feed.FeedName.String)
 }
 
+// Unfollow a feed for the current user
+func handlerUnFollow(s *State, cmd Command, user database.User) error {
+	if len(cmd.Arguments) < 1 {
+		return fmt.Errorf("not enough arguments provided Syntax 'unfollow url'\n")
+	}
+
+	// delete a follow
+	// Find feed id
+	feedURL := cmd.Arguments[0]
+	feed, err := s.db.FeedFromURL(context.Background(), feedURL)
+	if err != nil {
+		fmt.Printf("Cannot retrieve feed %s", feedURL)
+		os.Exit(1)
+	}
+	unfollowStruct := database.UnFollowParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	}
+	err = s.db.UnFollow(context.Background(), unfollowStruct)
+	if err != nil {
+		fmt.Printf("error while deleting feed follow record, %v\n", err)
+		os.Exit(1)
+	}
+
+	return nil
+
+}
+
+/*
+type UnFollowParams struct {
+	UserID uuid.UUID
+	FeedID uuid.UUID
+}
+
+func (q *Queries) UnFollow(ctx context.Context, arg UnFollowParams)
+*/
+
 // gets the feeds the current user is following
 func handlerFollowing(s *State, cmd Command, user database.User) error {
 
@@ -339,6 +376,7 @@ func initCommands() (Commands, error) {
 	commands.register("feeds", handlerFeeds)
 	commands.register("reset_feeds", handlerResetFeeds)
 	commands.register("follow", middlewareLoggedIn(handlerFollow))
+	commands.register("unfollow", middlewareLoggedIn(handlerUnFollow))
 	commands.register("following", middlewareLoggedIn(handlerFollowing))
 	commands.register("reset_feed_follow", handlerResetFeedFollow)
 
